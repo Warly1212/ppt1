@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedra, Papel e Tesoura</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            color: rgb(255, 255, 255);
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .top-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .bottom-section {
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        h1 {
+            color: rgb(0, 0, 0);
+            margin-bottom: 20px;
+        }
+
+        .choices {
+            margin-top: 150px;
+            display: flex;
+            justify-content: center;
+            position: relative; /* Adicionado para posicionamento do texto */
+        }
+
+        .choices img {
+            width: 100px; /* Tamanho das imagens */
+            cursor: pointer; /* Cursor do mouse */
+            margin: 0 10px; /* Espaçamento entre as imagens */
+        }
+
+        .choice-text {
+            position: absolute; /* Posicionamento absoluto */
+            top: -30px; /* Ajuste a posição vertical */
+            font-size: 16px;
+            color: white;
+            animation: blink 1s infinite; /* Animação de piscar */
+        }
+
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        .winner {
+            color: green;
+            animation: none;
+        }
+
+        .loser {
+            color: red;
+            animation: none;
+        }
+
+        .draw {
+            color: yellow;
+            animation: none;
+        }
+
+        .stats span {
+            color: blue;
+        }
+
+        /* Estilos para a imagem do logo */
+        #logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Estilos para as mensagens de acerto e erro */
+        #correctMessage, #errorMessage {
+            animation: blink 1s infinite; /* Adiciona a animação de piscar */
+            display: none; /* Inicialmente ocultas */
+            margin-top: 10px;
+        }
+
+        #correctMessage {
+            color: green;
+        }
+
+        #errorMessage {
+            color: rgb(255, 187, 0);
+        }
+
+        /* Aplicar estilo específico para dispositivos móveis */
+        @media only screen and (max-width: 600px) {
+            body, html {
+                background-color: black;
+                background-image: url('https://i.postimg.cc/QxXCpsvs/cell.png');
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center; /* Centraliza a imagem */
+            }
+        }
+
+        /* Aplicar estilo específico para telas maiores que 600px (computadores) */
+        @media only screen and (min-width: 600px) {
+            body, html {
+                background-color: black;
+                background-image: url('https://i.postimg.cc/Cx2KT85L/comp.png');
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center top; /* Corta a parte de cima da imagem */
+            }
+        }
+
+        /* Estilo para o problema matemático */
+        #mathProblem {
+            font-size: 20px;
+            margin-top: 20px;
+            display: none; /* Oculta o problema matemático por padrão */
+        }
+
+        #userAnswer {
+            margin-top: 10px;
+            padding: 5px;
+            font-size: 16px;
+            display: none; /* Oculta o campo de entrada por padrão */
+        }
+
+    </style>
+</head>
+<body>
+    <img id="logo" src="https://i.postimg.cc/2yZVgQKF/Design-sem-nome.png" alt="Logo">
+    
+    <div class="bottom-section" id="game-section">
+        <div class="container">
+            <div class="content">
+                <div class="choices">
+                    <div class="choice-text" id="gameTitle">PEDRA, PAPEL OU TESOURA?</div>
+                    <img src="https://i.postimg.cc/VsSQphMM/pedra.png" alt="Pedra" onclick="play('Pedra')">
+                    <img src="https://i.postimg.cc/13Bjf0ws/papel.png" alt="Papel" onclick="play('Papel')">
+                    <img src="https://i.postimg.cc/GhQQQL2j/tesoura.png" alt="Tesoura" onclick="play('Tesoura')">
+                </div>
+                <div id="result" class="initial">Escolha uma opção para jogar</div>
+                <div class="stats">
+                    <p>Vitórias: <span id="wins">0</span></p>
+                    <p>Derrotas: <span id="losses">0</span></p>
+                    <p>Empates: <span id="draws">0</span></p>
+                </div>
+                <button id="playAgainButton" onclick="resetGame()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: green; border: 2px solid white; border-radius: 5px; transition: all 0.3s ease; color: white; display: none;">Jogar Novamente</button>
+                <!-- Elemento para exibir o problema matemático -->
+                <div id="mathProblem"></div>
+                <!-- Campo de entrada para a resposta do usuário -->
+                <input type="text" id="userAnswer" placeholder="Digite sua resposta" onkeypress="return submitOnEnter(event)">
+                <!-- Botão de submissão da resposta -->
+                <button id="submitButton" onclick="submitAnswer()" style="padding: 5px 2px; font-size: 16px; cursor: pointer; background-color: green; border: 2px solid rgb(0, 255, 225); border-radius: 10px; transition: all 0.3s ease; color: white; display: none;">Enviar</button>
+                <!-- Mensagem de acerto -->
+                <div id="correctMessage">Você acertou!</div>
+                <!-- Mensagem de erro -->
+                <div id="errorMessage">Você errou! Tente novamente.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wins = 0;
+        let losses = 0;
+        let draws = 0;
+        let correctAnswer;
+
+        function play(userChoice) {
+            const choices = ['Pedra', 'Papel', 'Tesoura'];
+            const compChoice = choices[Math.floor(Math.random() * 3)];
+
+            let result;
+            if (userChoice === compChoice) {
+                result = 'Empate!';
+                draws++;
+                document.getElementById('result').classList.remove('winner', 'loser');
+                document.getElementById('result').classList.add('draw');
+                showPlayAgainButton();
+            } else if (
+                (userChoice === 'Pedra' && compChoice === 'Tesoura') ||
+                (userChoice === 'Papel' && compChoice === 'Pedra') ||
+                (userChoice === 'Tesoura' && compChoice === 'Papel')
+            ) {
+                result = 'Você venceu!';
+                wins++;
+                document.getElementById('result').classList.remove('loser', 'draw');
+                document.getElementById('result').classList.add('winner');
+                showPlayAgainButton();
+            } else {
+                // Robô ganha
+                result = 'Você perdeu! Resolva o seguinte problema para tentar novamente:';
+                losses++;
+                document.getElementById('result').classList.remove('winner', 'draw');
+                document.getElementById('result').classList.add('loser');
+                showMathProblem();
+                // Oculta o botão de jogar novamente
+                document.getElementById('playAgainButton').style.display = 'none';
+            }
+
+            document.getElementById('result').textContent = `O Robô Escolheu ${compChoice}. ${result}`;
+            updateStats();
+            if (result === 'Escolha uma opção para jogar') {
+                document.getElementById('result').classList.remove('winner', 'loser', 'draw');
+                document.getElementById('result').classList.add('initial');
+            } else {
+                animateResult('slideIn-animation');
+            }
+            disableButtons();
+            // Oculta o texto de escolha ao jogar
+            document.getElementById('gameTitle').style.display = 'none';
+        }
+
+        function updateStats() {
+            document.getElementById('wins').textContent = wins;
+            document.getElementById('losses').textContent = losses;
+            document.getElementById('draws').textContent = draws;
+        }
+
+        function resetGame() {
+            enableButtons();
+            document.getElementById('result').textContent = 'Escolha uma opção para jogar';
+            document.getElementById('result').classList.remove('loser', 'draw', 'winner');
+            document.getElementById('result').classList.add('initial');
+            hideMathProblem();
+            // Oculta as mensagens de acerto e erro
+            document.getElementById('correctMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            // Oculta o botão de jogar novamente
+            document.getElementById('playAgainButton').style.display = 'none';
+            // Mostra o texto de escolha
+            document.getElementById('gameTitle').style.display = 'block';
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll('.choices img');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll('.choices img');
+            buttons.forEach(button => {
+                button.disabled = false;
+            });
+        }
+
+        function animateResult(animationClass) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('blink-animation', 'slideIn-animation');
+            resultDiv.classList.add(animationClass);
+        }
+
+        function showMathProblem() {
+            const operators = ['+', '-', '*', '/'];
+            const operator = operators[Math.floor(Math.random() * 4)]; // Seleciona um operador aleatório
+            let num1, num2;
+            // Gera dois números aleatórios
+            num1 = Math.floor(Math.random() * 11); // Número entre 0 e 10
+            num2 = Math.floor(Math.random() * 11);
+            // Calcula o resultado
+            switch (operator) {
+                case '+':
+                    correctAnswer = num1 + num2;
+                    break;
+                case '-':
+                    correctAnswer = num1 - num2;
+                    break;
+                case '*':
+                    correctAnswer = num1 * num2;
+                    break;
+                case '/':
+                    // Evita divisão por zero
+                    if (num2 === 0) {
+                        num2 = 1;
+                    }
+                    correctAnswer = num1 / num2;
+                    break;
+            }
+            const problem = `Resolva: ${num1} ${operator} ${num2}`;
+            document.getElementById('mathProblem').textContent = problem;
+            // Mostra o problema matemático
+            document.getElementById('mathProblem').style.display = 'block';
+            // Mostra o campo de entrada para a resposta do usuário
+            document.getElementById('userAnswer').style.display = 'inline-block';
+            // Mostra o botão de submissão da resposta
+            document.getElementById('submitButton').style.display = 'inline-block';
+            // Define o foco no campo de entrada
+            document.getElementById('userAnswer').focus();
+        }
+
+        function hideMathProblem() {
+            // Limpa o conteúdo do problema matemático
+            document.getElementById('mathProblem').textContent = '';
+            // Oculta o problema matemático
+            document.getElementById('mathProblem').style.display = 'none';
+            // Oculta o campo de entrada para a resposta do usuário
+            document.getElementById('userAnswer').style.display = 'none';
+            // Limpa o valor do campo de entrada
+            document.getElementById('userAnswer').value = '';
+            // Oculta o botão de submissão da resposta
+            document.getElementById('submitButton').style.display = 'none';
+        }
+
+        function submitAnswer() {
+            const userAnswer = document.getElementById('userAnswer').value.trim();
+            if (userAnswer === correctAnswer.toString()) {
+                // Se a resposta estiver correta
+                document.getElementById('correctMessage').style.display = 'block'; // Exibe mensagem de acerto
+                document.getElementById('errorMessage').style.display = 'none'; // Oculta mensagem de erro
+                resetGame();
+            } else {
+                // Se a resposta estiver incorreta
+                document.getElementById('errorMessage').style.display = 'block'; // Exibe mensagem de erro
+                document.getElementById('correctMessage').style.display = 'none'; // Oculta mensagem de acerto
+                // Gera uma nova pergunta matemática
+                showMathProblem();
+                // Limpa a entrada de resposta
+                document.getElementById('userAnswer').value = '';
+            }
+        }
+
+        function showPlayAgainButton() {
+            // Mostra o botão de jogar novamente
+            document.getElementById('playAgainButton').style.display = 'inline-block';
+        }
+
+        function submitOnEnter(event) {
+            if (event.key === 'Enter') {
+                submitAnswer();
+                return false; // Impede o envio do formulário
+            }
+        }
+    </script>
+</body>
+</html>
